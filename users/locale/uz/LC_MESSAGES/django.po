@@ -1,0 +1,56 @@
+msgid ""
+msgstr ""
+"Language: uz\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+
+msgid "Phone is required."
+msgstr "Telefon raqami talab qilinadi."
+
+msgid "SMS is required."
+msgstr "SMS kodi talab qilinadi."
+
+msgid "SMS sent successfully."
+msgstr "SMS kodi muvaffaqiyatli yuborildi."
+
+msgid "Invalid or expired SMS."
+msgstr "SMS kodi noto'g'ri yoki muddati o'tgan."
+
+msgid "Too many attempts. Please request a new SMS."
+msgstr "Juda ko'p urinishlar. Yangi SMS kodini so'rang."
+
+msgid "SMS verified successfully."
+msgstr "SMS kodi muvaffaqiyatli tasdiqlandi."
+
+msgid "User is inactive."
+msgstr "Foydalanuvchi faol emas."
+
+msgid "Profile fetched successfully."
+msgstr "Profil muvaffaqiyatli olindi."
+
+msgid "Invalid profile data."
+msgstr "Profil ma'lumotlari noto'g'ri."
+
+msgid "Profile updated successfully."
+msgstr "Profil muvaffaqiyatli yangilandi."
+
+msgid "Invalid request data."
+msgstr "So'rov ma'lumotlari noto'g'ri."
+
+msgid "Telegram bot not configured."
+msgstr "Telegram boti sozlanmagan."
+
+msgid "SMS already sent. Please wait before requesting again."
+msgstr "SMS kodi allaqachon yuborilgan. Qayta so'rashdan oldin biroz kuting."
+
+msgid "Failed to send SMS."
+msgstr "SMS yuborib bo'lmadi."
+
+msgid "SMS resent successfully."
+msgstr "SMS kodi qayta yuborildi."
+
+msgid "Phone already in use."
+msgstr "Telefon raqami allaqachon ishlatilmoqda."
+
+msgid "User not found."
+msgstr "Foydalanuvchi topilmadi."
+

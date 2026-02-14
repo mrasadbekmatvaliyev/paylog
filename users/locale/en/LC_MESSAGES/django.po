@@ -1,0 +1,55 @@
+msgid ""
+msgstr ""
+"Language: en\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+
+msgid "Phone is required."
+msgstr "Phone is required."
+
+msgid "SMS is required."
+msgstr "SMS is required."
+
+msgid "SMS sent successfully."
+msgstr "SMS sent successfully."
+
+msgid "Invalid or expired SMS."
+msgstr "Invalid or expired SMS."
+
+msgid "Too many attempts. Please request a new SMS."
+msgstr "Too many attempts. Please request a new SMS."
+
+msgid "SMS verified successfully."
+msgstr "SMS verified successfully."
+
+msgid "User is inactive."
+msgstr "User is inactive."
+
+msgid "Profile fetched successfully."
+msgstr "Profile fetched successfully."
+
+msgid "Invalid profile data."
+msgstr "Invalid profile data."
+
+msgid "Profile updated successfully."
+msgstr "Profile updated successfully."
+
+msgid "Invalid request data."
+msgstr "Invalid request data."
+
+msgid "Telegram bot not configured."
+msgstr "Telegram bot not configured."
+
+msgid "SMS already sent. Please wait before requesting again."
+msgstr "SMS already sent. Please wait before requesting again."
+
+msgid "Failed to send SMS."
+msgstr "Failed to send SMS."
+
+msgid "SMS resent successfully."
+msgstr "SMS resent successfully."
+
+msgid "Phone already in use."
+msgstr "Phone already in use."
+
+msgid "User not found."
+msgstr "User not found."
