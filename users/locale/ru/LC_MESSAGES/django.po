@@ -4,53 +4,52 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 
 msgid "Phone is required."
-msgstr "Ð¢ÐµÐ»ÐµÑ„Ð¾Ð½ Ð¾Ð±ÑÐ·Ð°Ñ‚ÐµÐ»ÐµÐ½."
+msgstr "Телефон обязателен."
 
 msgid "SMS is required."
-msgstr "Ð¢Ñ€ÐµÐ±ÑƒÐµÑ‚ÑÑ SMS-ÐºÐ¾Ð´."
+msgstr "Требуется SMS-код."
 
 msgid "SMS sent successfully."
-msgstr "SMS-ÐºÐ¾Ð´ ÑƒÑÐ¿ÐµÑˆÐ½Ð¾ Ð¾Ñ‚Ð¿Ñ€Ð°Ð²Ð»ÐµÐ½."
+msgstr "SMS-код успешно отправлен."
 
 msgid "Invalid or expired SMS."
-msgstr "ÐÐµÐ²ÐµÑ€Ð½Ñ‹Ð¹ Ð¸Ð»Ð¸ Ð¿Ñ€Ð¾ÑÑ€Ð¾Ñ‡ÐµÐ½Ð½Ñ‹Ð¹ SMS-ÐºÐ¾Ð´."
+msgstr "Неверный или просроченный SMS-код."
 
 msgid "Too many attempts. Please request a new SMS."
-msgstr "Ð¡Ð»Ð¸ÑˆÐºÐ¾Ð¼ Ð¼Ð½Ð¾Ð³Ð¾ Ð¿Ð¾Ð¿Ñ‹Ñ‚Ð¾Ðº. ÐŸÐ¾Ð¶Ð°Ð»ÑƒÐ¹ÑÑ‚Ð°, Ð·Ð°Ð¿Ñ€Ð¾ÑÐ¸Ñ‚Ðµ Ð½Ð¾Ð²Ñ‹Ð¹ SMS-ÐºÐ¾Ð´."
+msgstr "Слишком много попыток. Пожалуйста, запросите новый SMS-код."
 
 msgid "SMS verified successfully."
-msgstr "SMS-ÐºÐ¾Ð´ ÑƒÑÐ¿ÐµÑˆÐ½Ð¾ Ð¿Ð¾Ð´Ñ‚Ð²ÐµÑ€Ð¶Ð´ÐµÐ½."
+msgstr "SMS-код успешно подтверждён."
 
 msgid "User is inactive."
-msgstr "ÐŸÐ¾Ð»ÑŒÐ·Ð¾Ð²Ð°Ñ‚ÐµÐ»ÑŒ Ð½ÐµÐ°ÐºÑ‚Ð¸Ð²ÐµÐ½."
+msgstr "Пользователь неактивен."
 
 msgid "Profile fetched successfully."
-msgstr "ÐŸÑ€Ð¾Ñ„Ð¸Ð»ÑŒ ÑƒÑÐ¿ÐµÑˆÐ½Ð¾ Ð¿Ð¾Ð»ÑƒÑ‡ÐµÐ½."
+msgstr "Профиль успешно получен."
 
 msgid "Invalid profile data."
-msgstr "ÐÐµÐºÐ¾Ñ€Ñ€ÐµÐºÑ‚Ð½Ñ‹Ðµ Ð´Ð°Ð½Ð½Ñ‹Ðµ Ð¿Ñ€Ð¾Ñ„Ð¸Ð»Ñ."
+msgstr "Некорректные данные профиля."
 
 msgid "Profile updated successfully."
-msgstr "ÐŸÑ€Ð¾Ñ„Ð¸Ð»ÑŒ ÑƒÑÐ¿ÐµÑˆÐ½Ð¾ Ð¾Ð±Ð½Ð¾Ð²Ð»ÐµÐ½."
+msgstr "Профиль успешно обновлён."
 
 msgid "Invalid request data."
-msgstr "ÐÐµÐ²ÐµÑ€Ð½Ñ‹Ðµ Ð´Ð°Ð½Ð½Ñ‹Ðµ Ð·Ð°Ð¿Ñ€Ð¾ÑÐ°."
+msgstr "Неверные данные запроса."
 
 msgid "Telegram bot not configured."
-msgstr "Ð¢ÐµÐ»ÐµÐ³Ñ€Ð°Ð¼-Ð±Ð¾Ñ‚ Ð½Ðµ Ð½Ð°ÑÑ‚Ñ€Ð¾ÐµÐ½."
+msgstr "Telegram-бот не настроен."
 
 msgid "SMS already sent. Please wait before requesting again."
-msgstr "SMS-ÐºÐ¾Ð´ ÑƒÐ¶Ðµ Ð¾Ñ‚Ð¿Ñ€Ð°Ð²Ð»ÐµÐ½. ÐŸÐ¾Ð¶Ð°Ð»ÑƒÐ¹ÑÑ‚Ð°, Ð¿Ð¾Ð´Ð¾Ð¶Ð´Ð¸Ñ‚Ðµ Ð¿ÐµÑ€ÐµÐ´ Ð¿Ð¾Ð²Ñ‚Ð¾Ñ€Ð½Ñ‹Ð¼ Ð·Ð°Ð¿Ñ€Ð¾ÑÐ¾Ð¼."
+msgstr "SMS-код уже отправлен. Пожалуйста, подождите перед повторным запросом."
 
 msgid "Failed to send SMS."
-msgstr "ÐÐµ ÑƒÐ´Ð°Ð»Ð¾ÑÑŒ Ð¾Ñ‚Ð¿Ñ€Ð°Ð²Ð¸Ñ‚ÑŒ SMS-ÐºÐ¾Ð´."
+msgstr "Не удалось отправить SMS-код."
 
 msgid "SMS resent successfully."
-msgstr "SMS-ÐºÐ¾Ð´ ÑƒÑÐ¿ÐµÑˆÐ½Ð¾ Ð¾Ñ‚Ð¿Ñ€Ð°Ð²Ð»ÐµÐ½ Ð¿Ð¾Ð²Ñ‚Ð¾Ñ€Ð½Ð¾."
+msgstr "SMS-код успешно отправлен повторно."
 
 msgid "Phone already in use."
-msgstr "Ð¢ÐµÐ»ÐµÑ„Ð¾Ð½ ÑƒÐ¶Ðµ Ð¸ÑÐ¿Ð¾Ð»ÑŒÐ·ÑƒÐµÑ‚ÑÑ."
+msgstr "Телефон уже используется."
 
 msgid "User not found."
-msgstr "ÐŸÐ¾Ð»ÑŒÐ·Ð¾Ð²Ð°Ñ‚ÐµÐ»ÑŒ Ð½Ðµ Ð½Ð°Ð¹Ð´ÐµÐ½."
-
+msgstr "Пользователь не найден."
