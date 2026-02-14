@@ -44,15 +44,21 @@ def is_telegram_configured():
     return bool(token and chat_id)
 
 
-def send_telegram_otp(phone, code):
+def send_telegram_otp(phone, code, lang="en"):
     if not is_telegram_configured():
         logging.getLogger(__name__).warning("Telegram bot not configured.")
         return False
     token = getattr(settings, "TELEGRAM_BOT_TOKEN", "")
     chat_id = getattr(settings, "TELEGRAM_CHAT_ID", "")
 
+    messages = {
+        "en": f"Paylog Platform: Operation confirmation code: {code}",
+        "ru": f"Платформа Paylog: Код подтверждения операции: {code}",
+        "uz": f"Paylog platformasi: Amaliyotni tasdiqlash kodi: {code}",
+    }
+    message = messages.get(lang) or messages["en"]
+
     try:
-        message = f"SMS code for {phone}: {code}"
         url = f"https://api.telegram.org/bot{token}/sendMessage"
         payload = urllib.parse.urlencode({"chat_id": chat_id, "text": message}).encode("utf-8")
         request = urllib.request.Request(url, data=payload)

@@ -28,6 +28,21 @@ from .utils import (
 )
 
 
+
+def get_request_lang(request):
+    raw = request.META.get("HTTP_ACCEPT_LANGUAGE", "")
+    raw = raw.lower()
+    for part in raw.split(","):
+        code = part.strip().split(";")[0]
+        if code.startswith("uz"):
+            return "uz"
+        if code.startswith("ru"):
+            return "ru"
+        if code.startswith("en"):
+            return "en"
+    return "en"
+
+
 class OTPSendView(APIView):
     permission_classes = [AllowAny]
 
@@ -36,6 +51,7 @@ class OTPSendView(APIView):
         if not serializer.is_valid():
             return error_response(_("Invalid request data."), status.HTTP_400_BAD_REQUEST, serializer.errors)
         phone = serializer.validated_data["phone"]
+        lang = get_request_lang(request)
         if not is_telegram_configured():
             return error_response(_("Telegram bot not configured."), status.HTTP_503_SERVICE_UNAVAILABLE)
 
@@ -56,7 +72,7 @@ class OTPSendView(APIView):
             code=generate_otp_code(),
             expires_at=otp_expiration_time(),
         )
-        if not send_telegram_otp(phone, otp.code):
+        if not send_telegram_otp(phone, otp.code, lang):
             otp.is_used = True
             otp.save(update_fields=["is_used"])
             return error_response(_("Failed to send SMS."), status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -71,6 +87,7 @@ class OTPResendView(APIView):
         if not serializer.is_valid():
             return error_response(_("Invalid request data."), status.HTTP_400_BAD_REQUEST, serializer.errors)
         phone = serializer.validated_data["phone"]
+        lang = get_request_lang(request)
         if not is_telegram_configured():
             return error_response(_("Telegram bot not configured."), status.HTTP_503_SERVICE_UNAVAILABLE)
 
@@ -80,7 +97,7 @@ class OTPResendView(APIView):
             code=generate_otp_code(),
             expires_at=otp_expiration_time(),
         )
-        if not send_telegram_otp(phone, otp.code):
+        if not send_telegram_otp(phone, otp.code, lang):
             otp.is_used = True
             otp.save(update_fields=["is_used"])
             return error_response(_("Failed to send SMS."), status.HTTP_500_INTERNAL_SERVER_ERROR)
