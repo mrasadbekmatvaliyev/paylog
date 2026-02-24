@@ -1,4 +1,5 @@
 from django.utils.translation import gettext as _
+from django.conf import settings
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -43,6 +44,18 @@ def get_request_lang(request):
     return "en"
 
 
+def is_test_login(phone, code=None):
+    if not getattr(settings, "TEST_LOGIN_ENABLED", False):
+        return False
+    test_phone = getattr(settings, "TEST_LOGIN_PHONE", "")
+    test_code = getattr(settings, "TEST_LOGIN_OTP", "")
+    if phone != test_phone:
+        return False
+    if code is None:
+        return True
+    return code == test_code
+
+
 class OTPSendView(APIView):
     permission_classes = [AllowAny]
 
@@ -52,6 +65,8 @@ class OTPSendView(APIView):
             return error_response(_("Invalid request data."), status.HTTP_400_BAD_REQUEST, serializer.errors)
         phone = serializer.validated_data["phone"]
         lang = get_request_lang(request)
+        if is_test_login(phone):
+            return success_response(_("SMS sent successfully."))
         if not is_telegram_configured():
             return error_response(_("Telegram bot not configured."), status.HTTP_503_SERVICE_UNAVAILABLE)
 
@@ -88,6 +103,8 @@ class OTPResendView(APIView):
             return error_response(_("Invalid request data."), status.HTTP_400_BAD_REQUEST, serializer.errors)
         phone = serializer.validated_data["phone"]
         lang = get_request_lang(request)
+        if is_test_login(phone):
+            return success_response(_("SMS resent successfully."))
         if not is_telegram_configured():
             return error_response(_("Telegram bot not configured."), status.HTTP_503_SERVICE_UNAVAILABLE)
 
@@ -113,6 +130,20 @@ class OTPVerifyView(APIView):
             return error_response(_("Invalid request data."), status.HTTP_400_BAD_REQUEST, serializer.errors)
         phone = serializer.validated_data["phone"]
         code = serializer.validated_data["code"]
+
+        if is_test_login(phone, code):
+            user, user_created = User.objects.get_or_create(phone=phone, defaults={"is_active": True})
+            if not user.is_active:
+                return error_response(_("User is inactive."), status.HTTP_403_FORBIDDEN)
+
+            refresh = RefreshToken.for_user(user)
+            data = {
+                "access": str(refresh.access_token),
+                "refresh": str(refresh),
+                "user": ProfileSerializer(user).data,
+                "new_user": not bool(user.first_name),
+            }
+            return success_response(_("SMS verified successfully."), data)
 
         otp = (
             OTP.objects.filter(phone=phone, is_used=False, expires_at__gt=timezone.now())
