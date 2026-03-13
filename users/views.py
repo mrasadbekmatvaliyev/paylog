@@ -16,7 +16,9 @@ from .serializers import (
     ProfileUpdateSerializer,
     TelegramOTPVerifySerializer,
     TelegramOTPSendSerializer,
+    AIChatRequestSerializer,
 )
+from .services.openai_service import OpenAIServiceError, get_ai_reply
 from .utils import (
     error_response,
     generate_otp_code,
@@ -313,3 +315,23 @@ class ProfileView(APIView):
             _("Profile updated successfully."),
             {"user": ProfileSerializer(request.user).data},
         )
+
+class AIChatView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = AIChatRequestSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        message = serializer.validated_data["message"]
+        if not message.strip():
+            return Response({"message": ["This field may not be blank."]}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            reply = get_ai_reply(message)
+            return Response({"reply": reply}, status=status.HTTP_200_OK)
+        except OpenAIServiceError as exc:
+            return Response({"detail": str(exc)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+

@@ -44,3 +44,7 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ["first_name", "last_name", "avatar", "default_currency"]
+
+class AIChatRequestSerializer(serializers.Serializer):
+    message = serializers.CharField(allow_blank=False, trim_whitespace=True)
+
