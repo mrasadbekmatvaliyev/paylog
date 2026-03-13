@@ -184,3 +184,6 @@ TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
 TEST_LOGIN_ENABLED = os.getenv("TEST_LOGIN_ENABLED", "true").lower() in ("1", "true", "yes")
 TEST_LOGIN_PHONE = os.getenv("TEST_LOGIN_PHONE", "+998940000000")
 TEST_LOGIN_OTP = os.getenv("TEST_LOGIN_OTP", "99999")
+OPENAI_API_KEY = 'change_me'
+
+

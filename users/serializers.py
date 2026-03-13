@@ -1,8 +1,10 @@
+from django.db import transaction
+from django.db.models import Q
 from rest_framework import serializers
 
 from finance.models import Currency
 from finance.serializers import CurrencyLiteSerializer
-from .models import User
+from .models import User, UserDevice
 
 
 class OTPRequestSerializer(serializers.Serializer):
@@ -47,4 +49,48 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
 
 class AIChatRequestSerializer(serializers.Serializer):
     message = serializers.CharField(allow_blank=False, trim_whitespace=True)
+
+class DeviceRegisterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserDevice
+        fields = [
+            "fcm_token",
+            "platform",
+            "notifications_enabled",
+            "device_id",
+            "locale",
+            "app_version",
+        ]
+
+    def validate_fcm_token(self, value):
+        value = value.strip()
+        if not value:
+            raise serializers.ValidationError("fcm_token is required.")
+        return value
+
+    def validate_device_id(self, value):
+        value = value.strip()
+        if not value:
+            raise serializers.ValidationError("device_id is required.")
+        return value
+
+    def create(self, validated_data):
+        user = self.context["request"].user
+        fcm_token = validated_data["fcm_token"]
+        device_id = validated_data["device_id"]
+
+        with transaction.atomic():
+            instance = (
+                UserDevice.objects.select_for_update()
+                .filter(Q(device_id=device_id) | Q(fcm_token=fcm_token))
+                .first()
+            )
+            if instance:
+                for field, value in validated_data.items():
+                    setattr(instance, field, value)
+                instance.user = user
+                instance.save()
+                return instance
+
+            return UserDevice.objects.create(user=user, **validated_data)
 

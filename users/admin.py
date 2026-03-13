@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth import get_user_model
 
-from .models import OTP, TelegramOTP
+from .models import OTP, TelegramOTP, UserDevice
 
 User = get_user_model()
 
@@ -31,3 +31,19 @@ class TelegramOTPAdmin(admin.ModelAdmin):
     )
     search_fields = ("telegram_user_id", "code")
     list_filter = ("is_used",)
+
+
+@admin.register(UserDevice)
+class UserDeviceAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "user",
+        "platform",
+        "device_id",
+        "notifications_enabled",
+        "app_version",
+        "updated_at",
+    )
+    search_fields = ("device_id", "fcm_token", "user__phone")
+    list_filter = ("platform", "notifications_enabled")
+    readonly_fields = ("created_at", "updated_at")

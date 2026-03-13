@@ -110,3 +110,37 @@ class TelegramOTP(models.Model):
 
     def __str__(self):
         return f"{self.telegram_user_id} - {self.code}"
+
+class UserDevice(models.Model):
+    PLATFORM_ANDROID = "android"
+    PLATFORM_IOS = "ios"
+
+    PLATFORM_CHOICES = (
+        (PLATFORM_ANDROID, "Android"),
+        (PLATFORM_IOS, "iOS"),
+    )
+
+    user = models.ForeignKey(
+        "users.User",
+        on_delete=models.CASCADE,
+        related_name="devices",
+    )
+    fcm_token = models.CharField(max_length=512, unique=True)
+    platform = models.CharField(max_length=10, choices=PLATFORM_CHOICES)
+    notifications_enabled = models.BooleanField(default=True)
+    device_id = models.CharField(max_length=255, unique=True)
+    locale = models.CharField(max_length=16, blank=True, default="uz")
+    app_version = models.CharField(max_length=32, blank=True, default="")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["user"]),
+            models.Index(fields=["device_id"]),
+            models.Index(fields=["fcm_token"]),
+        ]
+
+    def __str__(self):
+        return f"{self.user_id}:{self.platform}:{self.device_id}"
+

@@ -1,3 +1,4 @@
+from django.db import IntegrityError
 from django.utils.translation import gettext as _
 from django.conf import settings
 from django.utils import timezone
@@ -17,6 +18,7 @@ from .serializers import (
     TelegramOTPVerifySerializer,
     TelegramOTPSendSerializer,
     AIChatRequestSerializer,
+    DeviceRegisterSerializer,
 )
 from .services.openai_service import OpenAIServiceError, get_ai_reply
 from .utils import (
@@ -333,5 +335,24 @@ class AIChatView(APIView):
             return Response({"reply": reply}, status=status.HTTP_200_OK)
         except OpenAIServiceError as exc:
             return Response({"detail": str(exc)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class DeviceRegisterView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = DeviceRegisterSerializer(data=request.data, context={"request": request})
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            serializer.save()
+            return Response({"message": "Device registered successfully"}, status=status.HTTP_200_OK)
+        except IntegrityError:
+            return Response(
+                {"detail": "Device register conflict. Please retry."},
+                status=status.HTTP_409_CONFLICT,
+            )
+        except Exception:
+            return Response({"detail": "Internal server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
