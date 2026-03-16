@@ -185,5 +185,10 @@ TEST_LOGIN_ENABLED = os.getenv("TEST_LOGIN_ENABLED", "true").lower() in ("1", "t
 TEST_LOGIN_PHONE = os.getenv("TEST_LOGIN_PHONE", "+998940000000")
 TEST_LOGIN_OTP = os.getenv("TEST_LOGIN_OTP", "99999")
 OPENAI_API_KEY = 'change_me'
+FCM_SERVER_KEY = os.getenv("FCM_SERVER_KEY", "")
 
+
+
+
+FCM_SERVICE_ACCOUNT_PATH = os.getenv("FCM_SERVICE_ACCOUNT_PATH", "serviceAccountKey.json")
 

@@ -1,0 +1,44 @@
+/* Push notification action form styling in Django admin */
+#changelist-form .actions label[for="action"] {
+    margin-right: 10px;
+}
+
+#changelist-form .actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: linear-gradient(180deg, #f8fbff 0%, #eef5ff 100%);
+    border: 1px solid #d7e5ff;
+}
+
+#changelist-form .actions .push-title-input {
+    min-width: 220px;
+    border-radius: 6px;
+    border: 1px solid #b8c9ea;
+    padding: 7px 10px;
+}
+
+#changelist-form .actions .push-message-input {
+    min-width: 320px;
+    max-width: 520px;
+    border-radius: 6px;
+    border: 1px solid #b8c9ea;
+    padding: 7px 10px;
+    resize: vertical;
+}
+
+#changelist-form .actions button,
+#changelist-form .actions .button {
+    border-radius: 6px;
+}
+
+@media (max-width: 900px) {
+    #changelist-form .actions .push-title-input,
+    #changelist-form .actions .push-message-input {
+        min-width: 100%;
+        max-width: 100%;
+    }
+}
