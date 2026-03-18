@@ -5,6 +5,8 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import path, reverse
 
+from message.services import create_messages_for_users
+
 from .models import OTP, TelegramOTP, UserDevice
 from .services.push_notifications import send_bulk_fcm_notifications
 
@@ -66,17 +68,73 @@ class PushNotificationAdminForm(forms.Form):
         return cleaned
 
 
+class MessageAdminForm(forms.Form):
+    RECIPIENT_SELECTED = "selected"
+    RECIPIENT_ALL = "all"
+
+    recipient_mode = forms.ChoiceField(
+        label="Recipients",
+        choices=(
+            (RECIPIENT_SELECTED, "Selected users"),
+            (RECIPIENT_ALL, "All users"),
+        ),
+        initial=RECIPIENT_SELECTED,
+    )
+    text = forms.CharField(
+        label="Message text",
+        widget=forms.Textarea(
+            attrs={
+                "rows": 6,
+                "placeholder": "Xabar matnini kiriting...",
+            }
+        ),
+    )
+    link_name = forms.CharField(
+        label="Link name",
+        required=False,
+        max_length=255,
+        widget=forms.TextInput(attrs={"placeholder": "Batafsil ko'rish"}),
+    )
+    link = forms.URLField(
+        label="Link",
+        required=False,
+        widget=forms.URLInput(attrs={"placeholder": "https://example.com"}),
+    )
+    selected_user_ids = forms.CharField(widget=forms.HiddenInput(), required=False)
+
+    def clean(self):
+        cleaned = super().clean()
+        if cleaned.get("recipient_mode") == self.RECIPIENT_SELECTED and not cleaned.get("selected_user_ids", "").strip():
+            raise forms.ValidationError("No selected users found. Select users first or choose all users.")
+
+        link = cleaned.get("link")
+        link_name = (cleaned.get("link_name") or "").strip()
+        if link and not link_name:
+            raise forms.ValidationError("Link name is required when link is provided.")
+        if link_name and not link:
+            raise forms.ValidationError("Link is required when link name is provided.")
+        return cleaned
+
+
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
     list_display = ["phone", "first_name", "last_name", "is_premium", "is_active"]
     search_fields = ["phone", "first_name", "last_name"]
     change_list_template = "admin/users/user/change_list.html"
-    actions = ["open_push_notification_window"]
+    actions = ["open_push_notification_window", "open_message_window"]
 
     @admin.action(description="Open push notification window")
     def open_push_notification_window(self, request, queryset):
         ids = ",".join(str(pk) for pk in queryset.values_list("id", flat=True))
         url = reverse("admin:users_user_send_push")
+        if ids:
+            url = f"{url}?ids={ids}"
+        return HttpResponseRedirect(url)
+
+    @admin.action(description="Send in-app message")
+    def open_message_window(self, request, queryset):
+        ids = ",".join(str(pk) for pk in queryset.values_list("id", flat=True))
+        url = reverse("admin:users_user_send_message")
         if ids:
             url = f"{url}?ids={ids}"
         return HttpResponseRedirect(url)
@@ -88,6 +146,11 @@ class UserAdmin(admin.ModelAdmin):
                 "send-push/",
                 self.admin_site.admin_view(self.send_push_view),
                 name="users_user_send_push",
+            ),
+            path(
+                "send-message/",
+                self.admin_site.admin_view(self.send_message_view),
+                name="users_user_send_message",
             ),
         ]
         return custom_urls + urls
@@ -152,6 +215,63 @@ class UserAdmin(admin.ModelAdmin):
             "selected_user_ids": selected_ids,
         }
         return render(request, "admin/users/send_push_notification.html", context)
+
+    def send_message_view(self, request):
+        selected_ids = (request.GET.get("ids") or request.POST.get("selected_user_ids") or "").strip()
+
+        if request.method == "POST":
+            form = MessageAdminForm(request.POST)
+            if form.is_valid():
+                recipient_mode = form.cleaned_data["recipient_mode"]
+                text = form.cleaned_data["text"].strip()
+                link_name = (form.cleaned_data.get("link_name") or "").strip() or None
+                link = form.cleaned_data.get("link") or None
+
+                if recipient_mode == MessageAdminForm.RECIPIENT_SELECTED:
+                    id_list = [int(x) for x in form.cleaned_data["selected_user_ids"].split(",") if x.strip().isdigit()]
+                    user_qs = User.objects.filter(id__in=id_list)
+                else:
+                    user_qs = User.objects.all()
+
+                created_count, sent, failed = create_messages_for_users(
+                    user_qs=user_qs,
+                    text=text,
+                    link=link,
+                    link_name=link_name,
+                )
+
+                if not created_count:
+                    self.message_user(
+                        request,
+                        "No users found for the selected recipient mode.",
+                        level=messages.WARNING,
+                    )
+                elif failed:
+                    self.message_user(
+                        request,
+                        f"Created {created_count} messages. Push sent to {sent} devices, failed for {failed} devices.",
+                        level=messages.WARNING,
+                    )
+                else:
+                    self.message_user(
+                        request,
+                        f"Created {created_count} messages and sent push to {sent} devices.",
+                        level=messages.SUCCESS,
+                    )
+
+                return HttpResponseRedirect(reverse("admin:users_user_changelist"))
+        else:
+            form = MessageAdminForm(initial={"selected_user_ids": selected_ids})
+
+        context = {
+            **self.admin_site.each_context(request),
+            "opts": self.model._meta,
+            "title": "Send In-App Message",
+            "form": form,
+            "selected_count": len([x for x in selected_ids.split(",") if x.strip()]),
+            "selected_user_ids": selected_ids,
+        }
+        return render(request, "admin/users/send_message.html", context)
 
 
 @admin.register(OTP)

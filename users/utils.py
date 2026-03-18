@@ -52,9 +52,9 @@ def send_telegram_otp(phone, code, lang="en"):
     chat_id = getattr(settings, "TELEGRAM_CHAT_ID", "")
 
     messages = {
-        "en": f"Paylog Platform: Operation confirmation code: {code}",
-        "ru": f"Платформа Paylog: Код подтверждения операции: {code}",
-        "uz": f"Paylog platformasi: Amaliyotni tasdiqlash kodi: {code}",
+        "en": f"Paylog Platform: Phone: {phone}. Operation confirmation code: {code}",
+        "ru": f"Платформа Paylog: Номер: {phone}. Код подтверждения операции: {code}",
+        "uz": f"Paylog platformasi: Raqam: {phone}. Amaliyotni tasdiqlash kodi: {code}",
     }
     message = messages.get(lang) or messages["en"]
 
@@ -68,3 +68,4 @@ def send_telegram_otp(phone, code, lang="en"):
     except Exception:
         logging.getLogger(__name__).exception("Failed to send SMS via Telegram.")
         return False
+

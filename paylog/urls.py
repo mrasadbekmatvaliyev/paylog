@@ -11,10 +11,9 @@ urlpatterns = [
     path("api/v1/auth/", include("users.auth_urls")),
     path("api/v1/finance/", include("finance.urls")),
     path("api/v1/", include("chat.urls")),
+    path("api/", include("message.urls")),
+    path("api/v1/", include("message.urls")),
 ]
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-
-
-

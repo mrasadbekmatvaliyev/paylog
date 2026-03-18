@@ -67,6 +67,7 @@ INSTALLED_APPS = [
     "users",
     "finance",
     "chat",
+    "message",
 ]
 
 MIDDLEWARE = [
@@ -77,6 +78,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "paylog.middleware.TelegramApiActivityMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -180,6 +182,7 @@ MAX_OTP_ATTEMPTS = 5
 
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
+TELEGRAM_LOGGING_ENABLED = os.getenv('TELEGRAM_LOGGING_ENABLED', 'false').lower() in ('1', 'true', 'yes')
 
 TEST_LOGIN_ENABLED = os.getenv("TEST_LOGIN_ENABLED", "true").lower() in ("1", "true", "yes")
 TEST_LOGIN_PHONE = os.getenv("TEST_LOGIN_PHONE", "+998940000000")
@@ -191,4 +194,3 @@ FCM_SERVER_KEY = os.getenv("FCM_SERVER_KEY", "")
 
 
 FCM_SERVICE_ACCOUNT_PATH = os.getenv("FCM_SERVICE_ACCOUNT_PATH", "serviceAccountKey.json")
-
