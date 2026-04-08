@@ -118,7 +118,7 @@ class MessageAdminForm(forms.Form):
 
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
-    list_display = ["phone", "first_name", "last_name", "is_premium", "is_active"]
+    list_display = ["phone", "first_name", "last_name", "date_joined", "is_premium", "is_active"]
     search_fields = ["phone", "first_name", "last_name"]
     change_list_template = "admin/users/user/change_list.html"
     actions = ["open_push_notification_window", "open_message_window"]

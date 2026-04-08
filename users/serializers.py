@@ -16,6 +16,10 @@ class OTPVerifySerializer(serializers.Serializer):
     code = serializers.RegexField(regex=r"^\d{5}$")
 
 
+class DeleteAccountVerifySerializer(serializers.Serializer):
+    code = serializers.RegexField(regex=r"^\d{5}$")
+
+
 class TelegramOTPSendSerializer(serializers.Serializer):
     telegram_user_id = serializers.RegexField(regex=r"^\d{1,32}$", max_length=32)
     first_name = serializers.CharField(max_length=150, allow_blank=True, required=False)

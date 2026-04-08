@@ -13,7 +13,10 @@ urlpatterns = [
     path("api/v1/", include("chat.urls")),
     path("api/", include("message.urls")),
     path("api/v1/", include("message.urls")),
+    path("api/v1/", include("ai_chat.urls")),
 ]
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+

@@ -1,0 +1,614 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Paylog AI Chat</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --text: #111827;
+      --muted: #6b7280;
+      --line: #e5e7eb;
+      --primary: #0f766e;
+      --primary-2: #134e4a;
+      --danger: #b91c1c;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+      background: linear-gradient(180deg, #eef2ff 0%, var(--bg) 100%);
+      color: var(--text);
+    }
+
+    .container {
+      max-width: 1120px;
+      margin: 24px auto;
+      padding: 0 16px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 4px 18px rgba(17, 24, 39, 0.05);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 16px;
+    }
+
+    .row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .row-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    h1, h2, h3 {
+      margin: 0 0 12px;
+    }
+
+    h1 { font-size: 22px; }
+    h2 { font-size: 18px; }
+    h3 { font-size: 15px; color: var(--muted); }
+
+    input, textarea, button {
+      font: inherit;
+      border-radius: 8px;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      outline: none;
+      background: #fff;
+    }
+
+    input:focus, textarea:focus {
+      border-color: #14b8a6;
+      box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.15);
+    }
+
+    button {
+      padding: 10px 14px;
+      border: 1px solid transparent;
+      background: var(--primary);
+      color: #fff;
+      cursor: pointer;
+      transition: 0.15s ease;
+    }
+
+    button:hover { background: var(--primary-2); }
+    button.secondary {
+      background: #fff;
+      color: var(--text);
+      border-color: var(--line);
+    }
+
+    button.danger {
+      background: #fff;
+      color: var(--danger);
+      border-color: #fecaca;
+    }
+
+    .status {
+      margin-top: 10px;
+      min-height: 20px;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .status.error { color: var(--danger); }
+    .status.ok { color: #166534; }
+
+    .chat-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 62vh;
+      overflow: auto;
+      margin-top: 8px;
+    }
+
+    .chat-item {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px;
+      cursor: pointer;
+      background: #fff;
+    }
+
+    .chat-item.active {
+      border-color: #14b8a6;
+      background: #f0fdfa;
+    }
+
+    .chat-title {
+      font-weight: 600;
+      margin-bottom: 4px;
+      word-break: break-word;
+    }
+
+    .chat-meta {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .messages {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+      padding: 12px;
+      height: 58vh;
+      overflow: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .msg {
+      padding: 10px 12px;
+      border-radius: 10px;
+      max-width: 90%;
+      white-space: pre-wrap;
+      word-break: break-word;
+      border: 1px solid var(--line);
+    }
+
+    .msg.user {
+      align-self: flex-end;
+      background: #ecfeff;
+      border-color: #99f6e4;
+    }
+
+    .msg.assistant {
+      align-self: flex-start;
+      background: #f9fafb;
+    }
+
+    .msg.system {
+      align-self: center;
+      background: #fffbeb;
+      border-color: #fde68a;
+      font-size: 14px;
+    }
+
+    .msg-role {
+      display: block;
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .composer {
+      margin-top: 10px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+    }
+
+    .hidden { display: none !important; }
+
+    @media (max-width: 900px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .messages {
+        height: 45vh;
+      }
+
+      .chat-list {
+        max-height: 32vh;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Paylog AI Chat Demo</h1>
+
+    <section id="authCard" class="card">
+      <h2>Login (OTP)</h2>
+      <div class="row-wrap">
+        <input id="phoneInput" type="text" placeholder="Phone, masalan +998940000000" />
+        <button id="sendOtpBtn">OTP Yuborish</button>
+      </div>
+
+      <div class="row-wrap" style="margin-top:8px;">
+        <input id="otpInput" type="text" placeholder="OTP kod" />
+        <button id="verifyOtpBtn">Login (OTP Verify)</button>
+      </div>
+
+      <div id="authStatus" class="status"></div>
+      <div style="margin-top:8px;font-size:12px;color:var(--muted);">
+        Test rejimda odatda `TEST_LOGIN_PHONE` va `TEST_LOGIN_OTP` ishlaydi.
+      </div>
+    </section>
+
+    <section id="appCard" class="card hidden" style="margin-top:16px;">
+      <div class="row-wrap" style="justify-content:space-between; margin-bottom:12px;">
+        <h2 style="margin:0;">AI Chat</h2>
+        <div class="row-wrap">
+          <button id="newChatBtn" class="secondary">New Chat</button>
+          <button id="refreshChatsBtn" class="secondary">Refresh Chats</button>
+          <button id="logoutBtn" class="danger">Logout</button>
+        </div>
+      </div>
+
+      <div class="grid">
+        <aside>
+          <h3>Chats</h3>
+          <div id="chatList" class="chat-list"></div>
+        </aside>
+
+        <main>
+          <h3 id="currentChatTitle">Current Chat: (new chat)</h3>
+          <div id="messages" class="messages"></div>
+
+          <div class="composer">
+            <textarea id="messageInput" rows="3" placeholder="Xabar yozing..."></textarea>
+            <button id="sendMessageBtn">Send</button>
+          </div>
+
+          <div id="chatStatus" class="status"></div>
+        </main>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const API_BASE = window.location.protocol === "file:" ? "http://127.0.0.1:8000" : "";
+
+    const state = {
+      access: localStorage.getItem("access_token") || "",
+      refresh: localStorage.getItem("refresh_token") || "",
+      currentChatId: null,
+      chats: [],
+    };
+
+    const authCard = document.getElementById("authCard");
+    const appCard = document.getElementById("appCard");
+
+    const phoneInput = document.getElementById("phoneInput");
+    const otpInput = document.getElementById("otpInput");
+    const authStatus = document.getElementById("authStatus");
+
+    const chatListEl = document.getElementById("chatList");
+    const messagesEl = document.getElementById("messages");
+    const messageInput = document.getElementById("messageInput");
+    const chatStatus = document.getElementById("chatStatus");
+    const currentChatTitle = document.getElementById("currentChatTitle");
+
+    function setStatus(el, text, type = "") {
+      el.textContent = text || "";
+      el.className = `status ${type}`.trim();
+    }
+
+    function isoToLocal(iso) {
+      if (!iso) return "";
+      const d = new Date(iso);
+      if (Number.isNaN(d.getTime())) return iso;
+      return d.toLocaleString();
+    }
+
+    function setTokens(access, refresh) {
+      state.access = access || "";
+      state.refresh = refresh || "";
+      if (state.access) localStorage.setItem("access_token", state.access);
+      if (state.refresh) localStorage.setItem("refresh_token", state.refresh);
+    }
+
+    function clearSession() {
+      state.access = "";
+      state.refresh = "";
+      state.currentChatId = null;
+      state.chats = [];
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("refresh_token");
+      chatListEl.innerHTML = "";
+      messagesEl.innerHTML = "";
+      messageInput.value = "";
+      currentChatTitle.textContent = "Current Chat: (new chat)";
+      setStatus(chatStatus, "");
+      showAuth();
+    }
+
+    function showAuth() {
+      authCard.classList.remove("hidden");
+      appCard.classList.add("hidden");
+    }
+
+    function showApp() {
+      authCard.classList.add("hidden");
+      appCard.classList.remove("hidden");
+    }
+
+    async function apiFetch(url, options = {}) {
+      const headers = { ...(options.headers || {}) };
+      if (state.access) headers["Authorization"] = `Bearer ${state.access}`;
+      if (!(options.body instanceof FormData)) headers["Content-Type"] = "application/json";
+
+      const resp = await fetch(`${API_BASE}${url}`, {
+        method: options.method || "GET",
+        headers,
+        body: options.body,
+      });
+
+      let data = null;
+      try { data = await resp.json(); } catch (_) { data = null; }
+
+      return { ok: resp.ok, status: resp.status, data };
+    }
+
+    function parseApiError(payload, fallback = "Xatolik yuz berdi") {
+      if (!payload) return fallback;
+      if (payload.error && payload.error.message) return payload.error.message;
+      if (payload.detail) return payload.detail;
+      if (typeof payload === "string") return payload;
+      if (payload.message && Array.isArray(payload.message)) return payload.message.join(", ");
+      if (payload.message && typeof payload.message === "string") return payload.message;
+      const firstKey = Object.keys(payload)[0];
+      if (firstKey && Array.isArray(payload[firstKey])) return payload[firstKey].join(", ");
+      return fallback;
+    }
+
+    function renderChats() {
+      chatListEl.innerHTML = "";
+      if (!state.chats.length) {
+        chatListEl.innerHTML = `<div class="chat-meta">Chatlar hali yo'q.</div>`;
+        return;
+      }
+
+      for (const chat of state.chats) {
+        const item = document.createElement("div");
+        item.className = `chat-item ${state.currentChatId === chat.id ? "active" : ""}`;
+        item.innerHTML = `
+          <div class="chat-title">${escapeHtml(chat.title || `(Chat ${chat.id})`)}</div>
+          <div class="chat-meta">#${chat.id} | Updated: ${escapeHtml(isoToLocal(chat.updated_at))}</div>
+        `;
+        item.addEventListener("click", () => openChat(chat.id));
+        chatListEl.appendChild(item);
+      }
+    }
+
+    function renderMessages(messages) {
+      messagesEl.innerHTML = "";
+      for (const msg of messages) {
+        const div = document.createElement("div");
+        div.className = `msg ${msg.role}`;
+        div.innerHTML = `
+          <span class="msg-role">${escapeHtml(msg.role)}</span>
+          <div>${escapeHtml(msg.content || "")}</div>
+        `;
+        messagesEl.appendChild(div);
+      }
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
+    function appendMessage(role, content) {
+      const div = document.createElement("div");
+      div.className = `msg ${role}`;
+      div.innerHTML = `
+        <span class="msg-role">${escapeHtml(role)}</span>
+        <div>${escapeHtml(content || "")}</div>
+      `;
+      messagesEl.appendChild(div);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    async function sendOtp() {
+      const phone = phoneInput.value.trim();
+      if (!phone) {
+        setStatus(authStatus, "Phone kiriting", "error");
+        return;
+      }
+
+      setStatus(authStatus, "OTP yuborilmoqda...");
+      const res = await apiFetch("/api/v1/users/otp/send", {
+        method: "POST",
+        body: JSON.stringify({ phone }),
+      });
+
+      if (!res.ok) {
+        setStatus(authStatus, parseApiError(res.data, "OTP yuborishda xatolik"), "error");
+        return;
+      }
+
+      setStatus(authStatus, res.data?.message || "OTP yuborildi", "ok");
+    }
+
+    async function verifyOtp() {
+      const phone = phoneInput.value.trim();
+      const code = otpInput.value.trim();
+
+      if (!phone || !code) {
+        setStatus(authStatus, "Phone va OTP kiriting", "error");
+        return;
+      }
+
+      setStatus(authStatus, "Tekshirilmoqda...");
+      const res = await apiFetch("/api/v1/users/otp/verify", {
+        method: "POST",
+        body: JSON.stringify({ phone, code }),
+      });
+
+      if (!res.ok || !res.data?.success) {
+        setStatus(authStatus, parseApiError(res.data, "OTP verify xatolik"), "error");
+        return;
+      }
+
+      const payload = res.data?.data || {};
+      const access = payload.access;
+      const refresh = payload.refresh;
+      if (!access) {
+        setStatus(authStatus, "Access token kelmadi", "error");
+        return;
+      }
+
+      setTokens(access, refresh);
+      setStatus(authStatus, "Login muvaffaqiyatli", "ok");
+      showApp();
+      await loadChats();
+    }
+
+    async function loadChats() {
+      if (!state.access) return;
+      setStatus(chatStatus, "Chatlar yuklanmoqda...");
+
+      const res = await apiFetch("/api/v1/ai-chat/chats/");
+      if (!res.ok) {
+        setStatus(chatStatus, parseApiError(res.data, "Chatlarni olishda xatolik"), "error");
+        if (res.status === 401) clearSession();
+        return;
+      }
+
+      state.chats = Array.isArray(res.data) ? res.data : [];
+      renderChats();
+
+      if (state.currentChatId) {
+        const found = state.chats.find((c) => c.id === state.currentChatId);
+        if (!found) {
+          state.currentChatId = null;
+          messagesEl.innerHTML = "";
+          currentChatTitle.textContent = "Current Chat: (new chat)";
+        }
+      }
+
+      setStatus(chatStatus, "");
+    }
+
+    async function openChat(chatId) {
+      state.currentChatId = chatId;
+      renderChats();
+
+      const chat = state.chats.find((c) => c.id === chatId);
+      currentChatTitle.textContent = `Current Chat: ${chat ? chat.title : `#${chatId}`}`;
+      setStatus(chatStatus, "Xabarlar yuklanmoqda...");
+
+      const res = await apiFetch(`/api/v1/ai-chat/chats/${chatId}/messages/`);
+      if (!res.ok) {
+        setStatus(chatStatus, parseApiError(res.data, "Xabarlarni olishda xatolik"), "error");
+        return;
+      }
+
+      renderMessages(Array.isArray(res.data) ? res.data : []);
+      setStatus(chatStatus, "");
+    }
+
+    async function sendMessage() {
+      const content = messageInput.value.trim();
+      if (!content) {
+        setStatus(chatStatus, "Bo'sh xabar yuborib bo'lmaydi", "error");
+        return;
+      }
+
+      const payload = {
+        chat_id: state.currentChatId,
+        content,
+      };
+
+      messageInput.value = "";
+      appendMessage("user", content);
+      setStatus(chatStatus, "AI javobi kutilmoqda...");
+
+      const res = await apiFetch("/api/v1/ai-chat/messages/", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        setStatus(chatStatus, parseApiError(res.data, "Xabar yuborishda xatolik"), "error");
+        await loadChats();
+        if (state.currentChatId) await openChat(state.currentChatId);
+        return;
+      }
+
+      const data = res.data || {};
+      const chat = data.chat;
+      const assistant = data.assistant_message;
+      const aiError = data.ai_error;
+
+      if (chat && chat.id) {
+        state.currentChatId = chat.id;
+        currentChatTitle.textContent = `Current Chat: ${chat.title}`;
+      }
+
+      if (assistant && assistant.content) {
+        appendMessage("assistant", assistant.content);
+        setStatus(chatStatus, "Yuborildi", "ok");
+      } else if (aiError) {
+        appendMessage("system", `AI xatolik: ${aiError}`);
+        setStatus(chatStatus, "User xabari saqlandi, AI javobi olinmadi", "error");
+      } else {
+        setStatus(chatStatus, "Yuborildi", "ok");
+      }
+
+      await loadChats();
+      renderChats();
+    }
+
+    function startNewChat() {
+      state.currentChatId = null;
+      currentChatTitle.textContent = "Current Chat: (new chat)";
+      messagesEl.innerHTML = "";
+      renderChats();
+      setStatus(chatStatus, "Yangi chat rejimi yoqildi", "ok");
+    }
+
+    document.getElementById("sendOtpBtn").addEventListener("click", sendOtp);
+    document.getElementById("verifyOtpBtn").addEventListener("click", verifyOtp);
+    document.getElementById("sendMessageBtn").addEventListener("click", sendMessage);
+    document.getElementById("newChatBtn").addEventListener("click", startNewChat);
+    document.getElementById("refreshChatsBtn").addEventListener("click", loadChats);
+    document.getElementById("logoutBtn").addEventListener("click", clearSession);
+
+    messageInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    async function bootstrap() {
+      if (!state.access) {
+        showAuth();
+        return;
+      }
+      showApp();
+      await loadChats();
+    }
+
+    bootstrap();
+  </script>
+</body>
+</html>
+
+
+

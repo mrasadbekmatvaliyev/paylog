@@ -19,6 +19,7 @@ from .serializers import (
     TelegramOTPSendSerializer,
     AIChatRequestSerializer,
     DeviceRegisterSerializer,
+    DeleteAccountVerifySerializer,
 )
 from .services.openai_service import OpenAIServiceError, get_ai_reply
 from .utils import (
@@ -75,7 +76,7 @@ class OTPSendView(APIView):
             return error_response(_("Telegram bot not configured."), status.HTTP_503_SERVICE_UNAVAILABLE)
 
         active_otp = (
-            OTP.objects.filter(phone=phone, is_used=False, expires_at__gt=timezone.now())
+            OTP.objects.filter(phone=phone, purpose=OTP.PURPOSE_LOGIN, is_used=False, expires_at__gt=timezone.now())
             .order_by("-created_at")
             .first()
         )
@@ -85,10 +86,11 @@ class OTPSendView(APIView):
                 status.HTTP_400_BAD_REQUEST,
             )
 
-        OTP.objects.filter(phone=phone, is_used=False).update(is_used=True)
+        OTP.objects.filter(phone=phone, purpose=OTP.PURPOSE_LOGIN, is_used=False).update(is_used=True)
         otp = OTP.objects.create(
             phone=phone,
             code=generate_otp_code(),
+            purpose=OTP.PURPOSE_LOGIN,
             expires_at=otp_expiration_time(),
         )
         if not send_telegram_otp(phone, otp.code, lang):
@@ -112,10 +114,11 @@ class OTPResendView(APIView):
         if not is_telegram_configured():
             return error_response(_("Telegram bot not configured."), status.HTTP_503_SERVICE_UNAVAILABLE)
 
-        OTP.objects.filter(phone=phone, is_used=False).update(is_used=True)
+        OTP.objects.filter(phone=phone, purpose=OTP.PURPOSE_LOGIN, is_used=False).update(is_used=True)
         otp = OTP.objects.create(
             phone=phone,
             code=generate_otp_code(),
+            purpose=OTP.PURPOSE_LOGIN,
             expires_at=otp_expiration_time(),
         )
         if not send_telegram_otp(phone, otp.code, lang):
@@ -150,7 +153,7 @@ class OTPVerifyView(APIView):
             return success_response(_("SMS verified successfully."), data)
 
         otp = (
-            OTP.objects.filter(phone=phone, is_used=False, expires_at__gt=timezone.now())
+            OTP.objects.filter(phone=phone, purpose=OTP.PURPOSE_LOGIN, is_used=False, expires_at__gt=timezone.now())
             .order_by("-created_at")
             .first()
         )
@@ -317,6 +320,96 @@ class ProfileView(APIView):
             _("Profile updated successfully."),
             {"user": ProfileSerializer(request.user).data},
         )
+
+class ProfileDeleteOTPSendView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        if not user.is_active:
+            return error_response(_("User is inactive."), status.HTTP_400_BAD_REQUEST)
+        if not is_telegram_configured():
+            return error_response(_("Telegram bot not configured."), status.HTTP_503_SERVICE_UNAVAILABLE)
+
+        active_otp = (
+            OTP.objects.filter(
+                phone=user.phone,
+                purpose=OTP.PURPOSE_DELETE,
+                is_used=False,
+                expires_at__gt=timezone.now(),
+            )
+            .order_by("-created_at")
+            .first()
+        )
+        if active_otp:
+            return error_response(
+                _("SMS already sent. Please wait before requesting again."),
+                status.HTTP_400_BAD_REQUEST,
+            )
+
+        OTP.objects.filter(phone=user.phone, purpose=OTP.PURPOSE_DELETE, is_used=False).update(is_used=True)
+        otp = OTP.objects.create(
+            phone=user.phone,
+            code=generate_otp_code(),
+            purpose=OTP.PURPOSE_DELETE,
+            expires_at=otp_expiration_time(),
+        )
+
+        lang = get_request_lang(request)
+        if not send_telegram_otp(user.phone, otp.code, lang):
+            otp.is_used = True
+            otp.save(update_fields=["is_used"])
+            return error_response(_("Failed to send SMS."), status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        return success_response(_("SMS sent successfully."))
+
+
+class ProfileSoftDeleteView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request):
+        serializer = DeleteAccountVerifySerializer(data=request.data)
+        if not serializer.is_valid():
+            return error_response(_("Invalid request data."), status.HTTP_400_BAD_REQUEST, serializer.errors)
+
+        user = request.user
+        if not user.is_active:
+            return error_response(_("User is inactive."), status.HTTP_400_BAD_REQUEST)
+
+        code = serializer.validated_data["code"]
+        otp = (
+            OTP.objects.filter(
+                phone=user.phone,
+                purpose=OTP.PURPOSE_DELETE,
+                is_used=False,
+                expires_at__gt=timezone.now(),
+            )
+            .order_by("-created_at")
+            .first()
+        )
+        if not otp:
+            return error_response(_("Invalid or expired SMS."), status.HTTP_400_BAD_REQUEST)
+
+        if otp.attempts >= get_max_attempts():
+            return error_response(
+                _("Too many attempts. Please request a new SMS."),
+                status.HTTP_429_TOO_MANY_REQUESTS,
+            )
+
+        if otp.code != code:
+            otp.attempts += 1
+            otp.save(update_fields=["attempts"])
+            return error_response(_("Invalid or expired SMS."), status.HTTP_400_BAD_REQUEST)
+
+        otp.is_used = True
+        otp.save(update_fields=["is_used"])
+
+        user.is_active = False
+        user.deleted_at = timezone.now()
+        user.save(update_fields=["is_active", "deleted_at"])
+
+        return success_response(_("Profile deleted successfully."))
+
 
 class AIChatView(APIView):
     permission_classes = [AllowAny]

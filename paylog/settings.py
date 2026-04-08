@@ -68,6 +68,7 @@ INSTALLED_APPS = [
     "finance",
     "chat",
     "message",
+    "ai_chat",
 ]
 
 MIDDLEWARE = [
@@ -194,3 +195,5 @@ FCM_SERVER_KEY = os.getenv("FCM_SERVER_KEY", "")
 
 
 FCM_SERVICE_ACCOUNT_PATH = os.getenv("FCM_SERVICE_ACCOUNT_PATH", "serviceAccountKey.json")
+
+

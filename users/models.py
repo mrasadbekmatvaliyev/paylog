@@ -40,6 +40,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     avatar = models.ImageField(upload_to="avatars/", blank=True, null=True)
     is_premium = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
+    deleted_at = models.DateTimeField(null=True, blank=True)
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(default=timezone.now)
     default_currency = models.ForeignKey(
@@ -78,8 +79,17 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 
 class OTP(models.Model):
+    PURPOSE_LOGIN = "login"
+    PURPOSE_DELETE = "delete"
+
+    PURPOSE_CHOICES = (
+        (PURPOSE_LOGIN, "Login"),
+        (PURPOSE_DELETE, "Delete"),
+    )
+
     phone = models.CharField(max_length=20)
     code = models.CharField(max_length=5)
+    purpose = models.CharField(max_length=10, choices=PURPOSE_CHOICES, default=PURPOSE_LOGIN)
     attempts = models.PositiveIntegerField(default=0)
     is_used = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -87,11 +97,11 @@ class OTP(models.Model):
 
     class Meta:
         indexes = [
-            models.Index(fields=["phone", "is_used", "expires_at"]),
+            models.Index(fields=["phone", "purpose", "is_used", "expires_at"]),
         ]
 
     def __str__(self):
-        return f"{self.phone} - {self.code}"
+        return f"{self.phone} - {self.purpose} - {self.code}"
 
 
 class TelegramOTP(models.Model):
