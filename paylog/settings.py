@@ -69,6 +69,7 @@ INSTALLED_APPS = [
     "chat",
     "message",
     "ai_chat",
+    "market",
 ]
 
 MIDDLEWARE = [

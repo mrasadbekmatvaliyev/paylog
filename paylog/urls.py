@@ -14,6 +14,7 @@ urlpatterns = [
     path("api/", include("message.urls")),
     path("api/v1/", include("message.urls")),
     path("api/v1/", include("ai_chat.urls")),
+    path("api/v1/market/", include("market.urls")),
 ]
 
 if settings.DEBUG:
