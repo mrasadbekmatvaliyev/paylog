@@ -1,4 +1,4 @@
-from django.db import IntegrityError
+﻿from django.db import IntegrityError
 from django.utils.translation import gettext as _
 from django.conf import settings
 from django.utils import timezone
@@ -60,6 +60,18 @@ def is_test_login(phone, code=None):
         return True
     return code == test_code
 
+
+
+def is_test_delete(phone, code=None):
+    if not getattr(settings, "TEST_DELETE_ENABLED", False):
+        return False
+    test_phone = getattr(settings, "TEST_DELETE_PHONE", "")
+    test_code = getattr(settings, "TEST_DELETE_OTP", "")
+    if phone != test_phone:
+        return False
+    if code is None:
+        return True
+    return code == test_code
 
 class OTPSendView(APIView):
     permission_classes = [AllowAny]
@@ -328,6 +340,8 @@ class ProfileDeleteOTPSendView(APIView):
         user = request.user
         if not user.is_active:
             return error_response(_("User is inactive."), status.HTTP_400_BAD_REQUEST)
+        if is_test_delete(user.phone):
+            return success_response(_("SMS sent successfully."))
         if not is_telegram_configured():
             return error_response(_("Telegram bot not configured."), status.HTTP_503_SERVICE_UNAVAILABLE)
 
@@ -377,6 +391,12 @@ class ProfileSoftDeleteView(APIView):
             return error_response(_("User is inactive."), status.HTTP_400_BAD_REQUEST)
 
         code = serializer.validated_data["code"]
+        if is_test_delete(user.phone, code):
+            user.is_active = False
+            user.deleted_at = timezone.now()
+            user.save(update_fields=["is_active", "deleted_at"])
+            return success_response(_("Profile deleted successfully."))
+
         otp = (
             OTP.objects.filter(
                 phone=user.phone,
