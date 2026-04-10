@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.generics import ListAPIView, RetrieveDestroyAPIView
@@ -40,26 +41,37 @@ class SendMessageAPIView(APIView):
         if is_food_order_message(content):
             notify_food_order(request.user, content, chat.id)
 
-        history = list(
-            Message.objects.filter(chat=chat)
-            .order_by("created_at", "id")
-            .values("role", "content")
-        )
-
-        try:
-            ai_reply = ai_service.generate_reply(history)
+        allowed_phone = getattr(settings, "AI_CHAT_ALLOWED_PHONE", "")
+        if allowed_phone and request.user.phone == allowed_phone:
             assistant_message = Message.objects.create(
                 chat=chat,
                 role=Message.Role.ASSISTANT,
-                content=ai_reply,
+                content=getattr(settings, "AI_CHAT_STATIC_REPLY", ""),
             )
             assistant_data = MessageSerializer(assistant_message).data
             ai_error = None
             response_status = status.HTTP_201_CREATED
-        except AIServiceError as exc:
-            assistant_data = None
-            ai_error = str(exc)
-            response_status = status.HTTP_502_BAD_GATEWAY
+        else:
+            history = list(
+                Message.objects.filter(chat=chat)
+                .order_by("created_at", "id")
+                .values("role", "content")
+            )
+
+            try:
+                ai_reply = ai_service.generate_reply(history)
+                assistant_message = Message.objects.create(
+                    chat=chat,
+                    role=Message.Role.ASSISTANT,
+                    content=ai_reply,
+                )
+                assistant_data = MessageSerializer(assistant_message).data
+                ai_error = None
+                response_status = status.HTTP_201_CREATED
+            except AIServiceError as exc:
+                assistant_data = None
+                ai_error = str(exc)
+                response_status = status.HTTP_502_BAD_GATEWAY
 
         return Response(
             {
