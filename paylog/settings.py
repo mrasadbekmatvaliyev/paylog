@@ -190,6 +190,8 @@ TEST_LOGIN_ENABLED = os.getenv("TEST_LOGIN_ENABLED", "true").lower() in ("1", "t
 TEST_LOGIN_PHONE = os.getenv("TEST_LOGIN_PHONE", "+998940000000")
 TEST_LOGIN_OTP = os.getenv("TEST_LOGIN_OTP", "99999")
 OPENAI_API_KEY = 'change_me'
+AI_CHAT_ALLOWED_PHONE = os.getenv("AI_CHAT_ALLOWED_PHONE", "")
+AI_CHAT_STATIC_REPLY = os.getenv("AI_CHAT_STATIC_REPLY", "Salom! Hozir AI chat vaqtincha cheklangan.")
 FCM_SERVER_KEY = os.getenv("FCM_SERVER_KEY", "")
 
 
