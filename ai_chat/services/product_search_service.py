@@ -69,6 +69,13 @@ def _extract_query(raw_text):
     return " ".join(parts)
 
 
+def _product_image_urls(product):
+    image_urls = product.image_urls or []
+    if not image_urls and product.image_url:
+        image_urls = [product.image_url]
+    return image_urls
+
+
 def find_best_product_from_message(raw_text):
     query_text = _extract_query(raw_text)
     max_price = _extract_budget(raw_text)
@@ -103,7 +110,7 @@ def serialize_product(product):
         "name": product.name,
         "price": str(product.price),
         "description": product.description,
-        "image_url": product.image_url,
+        "image_urls": _product_image_urls(product),
     }
 
 
@@ -112,11 +119,12 @@ def format_product_reply(product):
         return "Mos product topilmadi."
 
     description = (product.description or "").strip() or "Tavsif yo'q"
-    image_url = product.image_url or "Rasm mavjud emas"
+    image_urls = _product_image_urls(product)
+    image_text = ", ".join(image_urls) if image_urls else "Rasm mavjud emas"
 
     return (
         f"Nomi: {product.name}\n"
         f"Narxi: {product.price} so'm\n"
         f"Tavsif: {description}\n"
-        f"Rasm: {image_url}"
+        f"Rasmlar: {image_text}"
     )
