@@ -1,3 +1,5 @@
+import re
+
 from django import forms
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
@@ -42,17 +44,19 @@ class ProductAdminForm(forms.ModelForm):
             self.initial["image_urls"] = self.instance.image_urls or ([self.instance.image_url] if self.instance.image_url else [])
 
     def clean_image_urls(self):
-        urls = self.cleaned_data.get("image_urls") or []
+        raw_urls = self.cleaned_data.get("image_urls") or []
         validator = URLValidator()
         cleaned_urls = []
 
-        for url in urls:
-            try:
-                validator(url)
-            except ValidationError as exc:
-                raise ValidationError(f"Invalid URL: {url}") from exc
-            if url not in cleaned_urls:
-                cleaned_urls.append(url)
+        for raw_url in raw_urls:
+            parts = [part.strip() for part in re.split(r"[\r\n,]+", raw_url) if part.strip()]
+            for url in parts:
+                try:
+                    validator(url)
+                except ValidationError as exc:
+                    raise ValidationError(f"Invalid URL: {url}") from exc
+                if url not in cleaned_urls:
+                    cleaned_urls.append(url)
 
         return cleaned_urls
 
