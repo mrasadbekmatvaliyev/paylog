@@ -1,0 +1,16 @@
+<div class="image-urls-widget" data-image-urls-widget>
+  <div class="image-urls-widget__list" data-image-urls-list>
+    {% for item in widget.items %}
+      <div class="image-urls-widget__row" data-image-urls-row>
+        <input type="url" name="{{ widget.input_name }}" value="{{ item }}" class="vTextField image-urls-widget__input" placeholder="https://example.com/image.jpg">
+        <button type="button" class="button image-urls-widget__remove" data-image-urls-remove>Remove</button>
+      </div>
+    {% empty %}
+      <div class="image-urls-widget__row" data-image-urls-row>
+        <input type="url" name="{{ widget.input_name }}" value="" class="vTextField image-urls-widget__input" placeholder="https://example.com/image.jpg">
+        <button type="button" class="button image-urls-widget__remove" data-image-urls-remove>Remove</button>
+      </div>
+    {% endfor %}
+  </div>
+  <button type="button" class="button image-urls-widget__add" data-image-urls-add>Add image URL</button>
+</div>

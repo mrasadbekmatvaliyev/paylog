@@ -1,5 +1,6 @@
 from django.contrib import admin
 
+from .forms import ProductAdminForm
 from .models import Category, Order, Product
 
 
@@ -11,6 +12,7 @@ class CategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
+    form = ProductAdminForm
     list_display = (
         "id",
         "name",
@@ -29,7 +31,6 @@ class ProductAdmin(admin.ModelAdmin):
         "description",
         "price",
         "discount_price",
-        "image_url",
         "image_urls",
         "category",
         "stock",

@@ -1,0 +1,31 @@
+.image-urls-widget {
+  display: grid;
+  gap: 10px;
+  max-width: 820px;
+}
+
+.image-urls-widget__list {
+  display: grid;
+  gap: 8px;
+}
+
+.image-urls-widget__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.image-urls-widget__input {
+  width: 100%;
+}
+
+.image-urls-widget__add,
+.image-urls-widget__remove {
+  width: fit-content;
+}
+
+.image-urls-widget__remove[disabled] {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
