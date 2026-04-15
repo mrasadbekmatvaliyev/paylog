@@ -17,6 +17,11 @@ class ProductSerializer(serializers.ModelSerializer):
         source="category",
         write_only=True,
     )
+    image_urls = serializers.ListField(
+        child=serializers.URLField(),
+        required=False,
+        allow_empty=True,
+    )
 
     class Meta:
         model = Product
@@ -27,6 +32,7 @@ class ProductSerializer(serializers.ModelSerializer):
             "price",
             "discount_price",
             "image_url",
+            "image_urls",
             "category",
             "category_id",
             "stock",
@@ -35,6 +41,41 @@ class ProductSerializer(serializers.ModelSerializer):
             "updated_at",
         ]
         read_only_fields = ["id", "created_at", "updated_at", "category"]
+
+    def validate(self, attrs):
+        image_url = attrs.get("image_url", serializers.empty)
+        image_urls = attrs.get("image_urls", serializers.empty)
+
+        if image_urls is not serializers.empty:
+            attrs["image_urls"] = [url for url in image_urls if url]
+
+        if image_url is serializers.empty and image_urls is serializers.empty:
+            return attrs
+
+        normalized_urls = self._merge_image_urls(
+            primary_image_url=None if image_url is serializers.empty else image_url,
+            image_urls=None if image_urls is serializers.empty else attrs.get("image_urls", []),
+        )
+        attrs["image_urls"] = normalized_urls
+        attrs["image_url"] = normalized_urls[0] if normalized_urls else None
+        return attrs
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        image_urls = instance.image_urls or []
+        if not image_urls and instance.image_url:
+            image_urls = [instance.image_url]
+        data["image_urls"] = image_urls
+        data["image_url"] = image_urls[0] if image_urls else data.get("image_url")
+        return data
+
+    @staticmethod
+    def _merge_image_urls(primary_image_url, image_urls):
+        merged = []
+        for url in [primary_image_url, *(image_urls or [])]:
+            if url and url not in merged:
+                merged.append(url)
+        return merged
 
 
 class OrderSerializer(serializers.ModelSerializer):

@@ -21,6 +21,7 @@ class Product(models.Model):
     price = models.DecimalField(max_digits=12, decimal_places=2)
     discount_price = models.DecimalField(max_digits=12, decimal_places=2, blank=True, null=True)
     image_url = models.URLField(blank=True, null=True)
+    image_urls = models.JSONField(default=list, blank=True)
     category = models.ForeignKey(Category, on_delete=models.PROTECT, related_name="products")
     stock = models.PositiveIntegerField(default=0)
     is_available = models.BooleanField(default=True)

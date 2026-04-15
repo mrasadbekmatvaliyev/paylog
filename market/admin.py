@@ -24,6 +24,17 @@ class ProductAdmin(admin.ModelAdmin):
     )
     search_fields = ("name", "description")
     list_filter = ("is_available", "category")
+    fields = (
+        "name",
+        "description",
+        "price",
+        "discount_price",
+        "image_url",
+        "image_urls",
+        "category",
+        "stock",
+        "is_available",
+    )
 
 
 @admin.register(Order)
