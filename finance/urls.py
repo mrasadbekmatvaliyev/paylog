@@ -1,7 +1,7 @@
-from django.urls import include, path
+﻿from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from .views import CategoryViewSet, CurrencyViewSet, TransactionViewSet, DebtorTransactionViewSet
+from .views import CategoryViewSet, CurrencyViewSet, TransactionViewSet, DebtorTransactionViewSet, VirtualCardMeView
 
 router = DefaultRouter()
 router.register(r"categories", CategoryViewSet, basename="category")
@@ -15,4 +15,5 @@ router.register(
 
 urlpatterns = [
     path("", include(router.urls)),
+    path("virtual-card/", VirtualCardMeView.as_view(), name="virtual-card"),
 ]

@@ -1,7 +1,7 @@
-from django.utils.translation import gettext as _
+﻿from django.utils.translation import gettext as _
 from rest_framework import serializers
 
-from .models import Category, Currency, Transaction, DebtorTransaction, DebtorBalance
+from .models import Category, Currency, Transaction, DebtorTransaction, DebtorBalance, VirtualCard
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -198,3 +198,16 @@ class DebtorBalanceSerializer(serializers.ModelSerializer):
     class Meta:
         model = DebtorBalance
         fields = ["balance", "currency"]
+
+
+class VirtualCardSerializer(serializers.ModelSerializer):
+    holder_first_name = serializers.CharField(source="user.first_name", read_only=True)
+    holder_last_name = serializers.CharField(source="user.last_name", read_only=True)
+    valid_until = serializers.SerializerMethodField()
+
+    def get_valid_until(self, obj):
+        return obj.valid_until.strftime("%m/%y")
+
+    class Meta:
+        model = VirtualCard
+        fields = ["card_number", "valid_until", "balance", "holder_first_name", "holder_last_name"]

@@ -6,6 +6,7 @@ from .models import (
     DebtorBalance,
     DebtorTransaction,
     Transaction,
+    VirtualCard,
 )
 
 
@@ -41,3 +42,9 @@ class DebtorTransactionAdmin(admin.ModelAdmin):
     list_display = ("type", "amount", "currency", "user", "phone", "date")
     list_filter = ("type", "currency")
     search_fields = ("user__phone", "phone", "note")
+
+
+@admin.register(VirtualCard)
+class VirtualCardAdmin(admin.ModelAdmin):
+    list_display = ("user", "card_number", "valid_until", "created_at")
+    search_fields = ("user__phone", "card_number")

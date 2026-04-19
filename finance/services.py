@@ -1,9 +1,16 @@
-# services.py
+﻿# services.py
 from decimal import Decimal
 
+from django.db import IntegrityError
 from django.db.models import Case, DecimalField, F, Sum, Value, When
 
-from .models import DebtorBalance, DebtorTransaction
+from .models import (
+    DebtorBalance,
+    DebtorTransaction,
+    VirtualCard,
+    calculate_virtual_card_valid_until,
+    generate_virtual_card_number,
+)
 
 
 def _signed_amount_expression():
@@ -44,3 +51,21 @@ def recompute_debtor_balance(*, user):
 
 def apply_transaction_to_balance(*, user, tx: DebtorTransaction):
     return recompute_debtor_balance(user=user)
+
+
+def ensure_virtual_card_for_user(user):
+    card = VirtualCard.objects.filter(user=user).first()
+    if card:
+        return card
+
+    for _ in range(5):
+        try:
+            return VirtualCard.objects.create(
+                user=user,
+                card_number=generate_virtual_card_number(),
+                valid_until=calculate_virtual_card_valid_until(),
+            )
+        except IntegrityError:
+            continue
+
+    raise IntegrityError("Could not generate unique virtual card number.")

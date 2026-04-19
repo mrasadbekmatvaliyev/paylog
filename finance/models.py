@@ -1,9 +1,37 @@
-from decimal import Decimal
+﻿from decimal import Decimal
+import secrets
+import string
 
 from django.conf import settings
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+
+
+VIRTUAL_CARD_PREFIX = "9471"
+VIRTUAL_CARD_LENGTH = 16
+VIRTUAL_CARD_YEARS_VALID = 4
+
+
+def generate_virtual_card_number():
+    suffix_length = VIRTUAL_CARD_LENGTH - len(VIRTUAL_CARD_PREFIX)
+    return VIRTUAL_CARD_PREFIX + "".join(
+        secrets.choice(string.digits) for _ in range(suffix_length)
+    )
+
+
+def calculate_virtual_card_valid_until(base_date=None):
+    base_date = base_date or timezone.localdate()
+    try:
+        return base_date.replace(year=base_date.year + VIRTUAL_CARD_YEARS_VALID)
+    except ValueError:
+        # Handle leap day by shifting to Feb 28 on non-leap target year.
+        return base_date.replace(
+            month=2,
+            day=28,
+            year=base_date.year + VIRTUAL_CARD_YEARS_VALID,
+        )
 
 
 class Currency(models.Model):
@@ -74,7 +102,6 @@ class Transaction(models.Model):
         return f"{self.type} {self.amount} {self.currency}"
 
 
-
 class DebtorBalance(models.Model):
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
@@ -111,3 +138,23 @@ class DebtorTransaction(models.Model):
 
     class Meta:
         ordering = ["-date", "-id"]
+
+
+class VirtualCard(models.Model):
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="virtual_card",
+    )
+    card_number = models.CharField(max_length=VIRTUAL_CARD_LENGTH, unique=True)
+    valid_until = models.DateField()
+    balance = models.DecimalField(max_digits=18, decimal_places=2, default=Decimal("0.00"))
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at", "-id"]
+
+    def __str__(self):
+        return f"{self.user_id} - {self.card_number}"
+
+

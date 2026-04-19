@@ -1,4 +1,4 @@
-from decimal import Decimal
+﻿from decimal import Decimal
 
 from datetime import timedelta
 
@@ -8,6 +8,7 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 from rest_framework import viewsets, permissions
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from rest_framework.exceptions import ValidationError
 from rest_framework.decorators import action
@@ -21,8 +22,14 @@ from .serializers import (
     TransactionWriteSerializer,
     
     DebtorTransactionSerializer,
+    VirtualCardSerializer,
 )
-from .services import apply_transaction_to_balance, get_balance_data_for_queryset, recompute_debtor_balance
+from .services import (
+    apply_transaction_to_balance,
+    ensure_virtual_card_for_user,
+    get_balance_data_for_queryset,
+    recompute_debtor_balance,
+)
 
 
 
@@ -50,6 +57,14 @@ class CurrencyViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         return Currency.objects.filter(is_active=True)
 
+
+
+class VirtualCardMeView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        card = ensure_virtual_card_for_user(request.user)
+        return Response(VirtualCardSerializer(card).data)
 
 class TransactionViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated, IsOwner]
@@ -221,3 +236,5 @@ class DebtorTransactionViewSet(viewsets.ModelViewSet):
             return Response({"balance": 0})
 
         return Response(balance_data)
+
+
