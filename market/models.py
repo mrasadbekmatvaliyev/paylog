@@ -40,6 +40,10 @@ class Order(models.Model):
         PENDING = "pending", "Pending"
         CONFIRMED = "confirmed", "Confirmed"
 
+    class PaymentMethod(models.TextChoices):
+        CASH = "cash", "Cash"
+        VIRTUAL_CARD = "virtual_card", "Virtual card"
+
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -47,6 +51,25 @@ class Order(models.Model):
     )
     product = models.ForeignKey(Product, on_delete=models.PROTECT, related_name="orders")
     quantity = models.PositiveIntegerField(default=1)
+    location = models.CharField(max_length=255, blank=True, default="")
+    latitude = models.DecimalField(
+        max_digits=9,
+        decimal_places=6,
+        null=True,
+        blank=True,
+    )
+    longitude = models.DecimalField(
+        max_digits=9,
+        decimal_places=6,
+        null=True,
+        blank=True,
+    )
+    note = models.TextField(blank=True, default="")
+    payment_method = models.CharField(
+        max_length=20,
+        choices=PaymentMethod.choices,
+        default=PaymentMethod.CASH,
+    )
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

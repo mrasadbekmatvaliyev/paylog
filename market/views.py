@@ -1,3 +1,8 @@
+from decimal import Decimal
+
+from django.db import transaction
+from finance.models import VirtualCard
+from finance.services import ensure_virtual_card_for_user
 from rest_framework import permissions, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
@@ -60,4 +65,45 @@ class OrderViewSet(viewsets.ModelViewSet):
         ).filter(user=self.request.user)
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        user = self.request.user
+        product = serializer.validated_data["product"]
+        quantity = serializer.validated_data.get("quantity", 1)
+        payment_method = serializer.validated_data.get(
+            "payment_method",
+            Order.PaymentMethod.CASH,
+        )
+
+        if payment_method == Order.PaymentMethod.VIRTUAL_CARD:
+            ensure_virtual_card_for_user(user)
+
+        with transaction.atomic():
+            product = Product.objects.select_for_update().get(pk=product.pk)
+            if not product.is_available:
+                raise ValidationError({"product_id": "Product is not available."})
+            if product.stock < quantity:
+                raise ValidationError({"quantity": "Not enough product stock."})
+
+            unit_price = (
+                product.discount_price
+                if product.discount_price is not None
+                else product.price
+            )
+            total_price = unit_price * Decimal(quantity)
+
+            if payment_method == Order.PaymentMethod.VIRTUAL_CARD:
+                card = VirtualCard.objects.select_for_update().get(user=user)
+                if card.balance < total_price:
+                    raise ValidationError({"balance": "Insufficient virtual card balance."})
+
+            serializer.save(user=user, product=product)
+
+            product.stock -= quantity
+            product_update_fields = ["stock"]
+            if product.stock == 0:
+                product.is_available = False
+                product_update_fields.append("is_available")
+            product.save(update_fields=product_update_fields)
+
+            if payment_method == Order.PaymentMethod.VIRTUAL_CARD:
+                card.balance -= total_price
+                card.save(update_fields=["balance"])
